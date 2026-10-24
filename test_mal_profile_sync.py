@@ -153,6 +153,31 @@ def test_never_downgrades_completed(client, mal):
 
 def test_other_statuses_not_sent(client, mal):
     client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "on_hold"})
+    client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "plan_to_read"})
+    idle()
+    assert mal.patches == []
+    client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "dropped"})
+    idle()
+    assert mal.patches == [(111, "dropped")]
+
+
+def test_dropped_by_hand_is_sent_over_completed(client, mal):
+    mal.list[111] = "completed"
+    client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "dropped"})
+    idle()
+    assert mal.patches == [(111, "dropped")]
+    assert choice(client.get(f"/api/series/{mal.ids['b']}").json())["value"] == "dropped"
+    # already dropped there: nothing sent again
+    client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "reading"})
+    mal.list[111] = "dropped"
+    mal.patches.clear()
+    client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "dropped"})
+    idle()
+    assert mal.patches == []
+
+
+def test_manual_doesnt_send_dropped(client, mal):
+    client.put(f"/api/plugins/{PID}/settings", json={"sync_mode": "manual"})
     client.patch(f"/api/series/{mal.ids['b']}", json={"reading_status": "dropped"})
     idle()
     assert mal.patches == []
@@ -175,6 +200,22 @@ def test_sync_all(client, mal):
     assert mal.patches == [(222, "completed")]
 
 
+def test_sync_all_pulls_dropped(client, mal):
+    read_all(client, mal.ids["h"])  # Reading here
+    mal.list = {111: "dropped", 222: "dropped"}
+    mal.patches.clear()
+    client.post(f"/api/plugins/{PID}/actions/sync")
+    idle()
+    assert series(client, "Series B")["reading_status"] == "dropped"
+    assert series(client, "Hana to Akuma")["reading_status"] == "dropped"
+    assert choice(client.get(f"/api/series/{mal.ids['b']}").json())["value"] == "dropped"
+    assert "2 updated here, 0 sent" in info(client)["status"]
+    assert mal.patches == []
+    client.post(f"/api/plugins/{PID}/actions/sync")  # again: nothing new
+    idle()
+    assert "0 updated here, 0 sent" in info(client)["status"]
+
+
 def test_sync_all_sends_what_mal_is_missing(client, mal):
     read_all(client, mal.ids["b"])  # pushed by the event already...
     mal.list.clear()                # ...but say MAL lost it
@@ -189,6 +230,11 @@ def test_series_button(client, mal):
     mal.list[111] = "completed"
     r = client.post(f"/api/series/{mal.ids['b']}/actions/{PID}/sync").json()
     assert r["message"] == "Marked Completed (from MyAnimeList)"
+    mal.list[111] = "dropped"
+    r = client.post(f"/api/series/{mal.ids['b']}/actions/{PID}/sync").json()
+    assert r["message"] == "Marked Dropped (from MyAnimeList)"
+    assert series(client, "Series B")["reading_status"] == "dropped"
+    assert mal.patches == []
     set_series(mal.ids["h"], mal_id=None)
     r = client.post(f"/api/series/{mal.ids['h']}/actions/{PID}/sync").json()
     assert "no MyAnimeList id" in r["message"]

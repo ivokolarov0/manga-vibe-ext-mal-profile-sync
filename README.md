@@ -17,13 +17,31 @@ other way:
 - Reading on MyAnimeList → **Reading** in MangaVibe, if you hadn't started it there
 - anything you're reading or finished in MangaVibe that MyAnimeList doesn't have yet is sent there
 
-A series that is Completed on MyAnimeList is never set back to Reading. On hold, Dropped and
-Plan to read are never changed.
+The sync never sets a series that's Completed on MyAnimeList back to Reading by itself, and it never
+changes On hold, Dropped or Plan to read.
+
+## Change the status from MangaVibe
+
+The series page has a **MyAnimeList** dropdown under the reading status. It shows the series' status
+on MyAnimeList, and you can change it there instead of on the website:
+
+| You pick… | MyAnimeList | MangaVibe |
+|---|---|---|
+| **Reading**, **Completed**, **On hold**, **Dropped** or **Plan to read** | set to that | set to the same status |
+| **Not on my list** | removed from your list | stays as it is |
+
+A series you removed stays off your list: **Sync all** won't send it back. It goes back on MyAnimeList
+only when you change its status in MangaVibe yourself, or pick a status in the dropdown.
+
+The dropdown shows what the plugin last saw on MyAnimeList. If you changed something on the website,
+press **Sync with MyAnimeList** (Plugin tools) or **Sync all** to update it. *Unknown* means the series
+hasn't been synced yet.
 
 Series need a MyAnimeList id. They get one when they're matched through AniList (most are). Series
-without one are skipped; the last sync result in Settings says how many.
+without one have no dropdown and are skipped by the sync; the last sync result in Settings says how many.
 
-Needs MangaVibe with plugin API v2.
+The dropdown needs **MangaVibe 1.2.0** or newer. On older versions the plugin loads and syncs as
+before, without the dropdown.
 
 ## Install
 

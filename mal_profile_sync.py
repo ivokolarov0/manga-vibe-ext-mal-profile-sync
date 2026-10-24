@@ -9,11 +9,13 @@ What it does (status only, no chapter counts). With Sync: Automatic (the default
     the series has ended (Finished)      -> Completed on MyAnimeList
     it's still coming out                -> stays Reading
 - You set "Completed" by hand            -> Completed on MyAnimeList
+- You set "Dropped" by hand              -> Dropped on MyAnimeList (even if it was Completed there)
 - You reset it (back to unread)          -> removed from your MyAnimeList list
 With Sync: Manual, nothing is sent by itself; use the dropdown or the sync buttons.
 - "Sync all" (Settings) / "Sync with MyAnimeList" (series page):
     Completed on MyAnimeList             -> Completed in MangaVibe
     Reading on MyAnimeList               -> Reading in MangaVibe (if you hadn't started it)
+    Dropped on MyAnimeList               -> Dropped in MangaVibe
     and anything you read in MangaVibe that MyAnimeList doesn't know yet is sent there.
 - The "MyAnimeList" dropdown on the series page shows the status on MyAnimeList and changes it:
     Reading / Completed / On hold / Dropped / Plan to read -> set there, and here too
@@ -22,6 +24,7 @@ With Sync: Manual, nothing is sent by itself; use the dropdown or the sync butto
                                             its status here yourself
 Series need a MyAnimeList id, which they get when they are matched through AniList.
 A series that is Completed on MyAnimeList is never set back to Reading by itself (the dropdown can).
+On hold and Plan to read are never changed by themselves, only with the dropdown.
 The dropdown needs MangaVibe 1.2 or newer; on older versions the rest still works.
 """
 import secrets
@@ -39,7 +42,7 @@ except ImportError:  # MangaVibe before 1.2: everything works, there's just no d
 AUTH_URL = "https://myanimelist.net/v1/oauth2/authorize"
 TOKEN_URL = "https://myanimelist.net/v1/oauth2/token"
 API = "https://api.myanimelist.net/v2"
-PUSHED = ("reading", "completed")  # the only statuses sent by themselves (the dropdown sends any)
+PUSHED = ("reading", "completed")  # sent by themselves, plus "dropped" set by hand (the dropdown sends any)
 # MyAnimeList's statuses; MangaVibe uses the same names. "" = not on your list.
 STATUS_OPTIONS = [("reading", "Reading"), ("completed", "Completed"), ("on_hold", "On hold"),
                   ("dropped", "Dropped"), ("plan_to_read", "Plan to read"), ("", "Not on my list")]
@@ -64,8 +67,8 @@ class NotConnected(Exception):
 class MalProfileSync(Plugin):
     id = "mal-profile-sync"
     name = "MyAnimeList sync"
-    version = "1.1.0"
-    description = "Sends Reading / Completed to your MyAnimeList list and pulls them back."
+    version = "1.2.0"
+    description = "Sends Reading / Completed / Dropped to your MyAnimeList list and pulls them back."
     url = "https://myanimelist.net"
     repo = "ivokolarov0/manga-vibe-ext-mal-profile-sync"  # MangaVibe 1.2+ updates it from the releases
     fields = [FieldDef("mal_status", "MyAnimeList")]  # last known status there; the dropdown shows it
@@ -240,7 +243,7 @@ class MalProfileSync(Plugin):
         return (ctx.settings.get("sync_mode") or "auto") == "auto"
 
     def on_series_status_changed(self, ctx, series, old, new):
-        if not series.mal_id or not self._automatic(ctx) or new not in (*PUSHED, "unread"):
+        if not series.mal_id or not self._automatic(ctx) or new not in (*PUSHED, "dropped", "unread"):
             return
         try:
             mal = self._client(ctx)
@@ -250,7 +253,18 @@ class MalProfileSync(Plugin):
             self._remove(ctx, mal, series)
             return
         self._flag(ctx, "removed", series, False)  # you changed it here, so MAL may have it again
+        if new == "dropped":  # the owner's choice: sent even over Completed
+            self._send_dropped(ctx, mal, series)
+            return
         self._push(ctx, mal, series, self._wanted(series, new), remote=None)
+
+    def _send_dropped(self, ctx, mal, series):
+        entry = mal.get(f"/manga/{series.mal_id}", fields="my_list_status")
+        if (entry.get("my_list_status") or {}).get("status") != "dropped":
+            mal.patch(f"/manga/{series.mal_id}/my_list_status", status="dropped")
+            ctx.log.info("MyAnimeList: %s -> dropped (set here by hand)", series.folder_name)
+        ctx.set_field(series, "mal_status", "dropped")
+        self._flag(ctx, "pulled_reading", series, False)
 
     def _remove(self, ctx, mal, series):
         try:
@@ -308,6 +322,13 @@ class MalProfileSync(Plugin):
                 self._flag(ctx, "pulled_reading", series, False)
                 return "Marked Completed (from MyAnimeList)"
             return "Already Completed on both"
+        if remote == "dropped":
+            ctx.set_field(series, "mal_status", "dropped")
+            self._flag(ctx, "pulled_reading", series, False)
+            if here != "dropped":
+                ctx.set_reading_status(series, "dropped")
+                return "Marked Dropped (from MyAnimeList)"
+            return "Already Dropped on both"
         if remote == "reading" and here == "unread":
             ctx.set_reading_status(series, "reading")
             self._flag(ctx, "pulled_reading", series, True)

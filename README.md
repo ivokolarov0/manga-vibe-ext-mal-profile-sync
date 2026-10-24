@@ -1,7 +1,7 @@
 # MyAnimeList sync for MangaVibe
 
 A [MangaVibe](https://github.com/ivokolarov0/manga-vibe) plugin that keeps your MyAnimeList manga list
-in step with what you read. It only syncs the **status** (Reading / Completed), not chapter counts.
+in step with what you read. It only syncs the **status** (Reading / Completed / Dropped), not chapter counts.
 
 ## Automatic or Manual
 
@@ -16,6 +16,7 @@ by itself:
 | finish the last book you have, and the series has **ended** | **Completed** |
 | finish the last book you have, and the series is **still coming out** | stays **Reading** |
 | set a series to Completed by hand | **Completed** |
+| set a series to Dropped by hand | **Dropped** (even if it was Completed there) |
 | reset a series (mark it all unread, or clear its status) | **removed** from your list |
 
 **Manual:** nothing is sent by itself. You change MyAnimeList yourself with the dropdown on the series
@@ -26,10 +27,11 @@ other way:
 
 - Completed on MyAnimeList → **Completed** in MangaVibe (no matter which chapters you've read)
 - Reading on MyAnimeList → **Reading** in MangaVibe, if you hadn't started it there
+- Dropped on MyAnimeList → **Dropped** in MangaVibe
 - anything you're reading or finished in MangaVibe that MyAnimeList doesn't have yet is sent there
 
 The sync never sets a series that's Completed on MyAnimeList back to Reading by itself, and it never
-changes On hold, Dropped or Plan to read.
+changes On hold or Plan to read by itself.
 
 ## Change the status from MangaVibe
 

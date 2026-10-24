@@ -36,15 +36,20 @@ To update, replace the file and press Reload plugins again. To remove it, delete
 
 ## Connect your MyAnimeList account
 
-1. Open MangaVibe's **Settings → Plugins**. Under *MyAnimeList sync* it shows the **redirect URL**,
-   for example `http://192.168.1.50:8080/api/plugins/mal-profile-sync/web/callback`. It's built from the
-   address you opened MangaVibe at, so open it the way you normally do.
+1. Open MangaVibe's **Settings → Plugins**. Under *MyAnimeList sync* it shows the **redirect URL**:
+   `http://{{YOUR_IP_ADDRESS_HERE}}:8090/api/plugins/mal-profile-sync/web/callback`, with your NAS's
+   address in place of `{{YOUR_IP_ADDRESS_HERE}}`. It's built from the address you opened MangaVibe
+   at, so open it the way you normally do, and copy it from there rather than typing it.
 2. Go to <https://myanimelist.net/apiconfig> → **Create ID** and fill in:
    - **App Type:** `other`
-   - **App Redirect URL:** the redirect URL from step 1, exactly
+   - **App Redirect URL:** the redirect URL from step 1, exactly (same address, port, no `/` at the end).
+     If it doesn't match, MyAnimeList sends you back to its login page over and over after you
+     allow access.
    - the other fields (name, description, homepage…) can be anything
-3. Copy the **Client ID** into the *Client ID* box in MangaVibe. (Leave *Client secret* empty. It's
-   only needed if you picked App Type `web`.)
+
+   ![MyAnimeList API settings filled in for MangaVibe](docs/mal-apiconfig.png)
+3. Copy the **Client ID** into the *Client ID* box in MangaVibe. It's hidden like a password once
+   saved. (Leave *Client secret* empty. It's only needed if you picked App Type `web`.)
 4. Press **Connect MyAnimeList**, log in on MyAnimeList and allow access. You land back on a page that
    says "Connected". Settings now shows *Connected as &lt;your name&gt;*.
 5. Press **Sync all** once to bring both sides in line.

@@ -178,6 +178,8 @@ def test_series_button(client, mal):
 
 def test_connect_flow(client, mal):
     client.put(f"/api/plugins/{PID}/settings", json={"client_id": "my-client"})
+    cid = next(f for f in info(client)["settings"] if f["key"] == "client_id")
+    assert cid["secret"] and cid["value"] == "" and cid["saved"]  # never sent back to the browser
     client.post(f"/api/plugins/{PID}/actions/disconnect")
     assert info(client)["status"].startswith("Not connected")
     assert "http://testserver/api/plugins/mal-profile-sync/web/callback" in info(client)["status"]

@@ -36,12 +36,12 @@ class NotConnected(Exception):
 class MalProfileSync(Plugin):
     id = "mal-profile-sync"
     name = "MyAnimeList sync"
-    version = "1.0.0"
+    version = "1.0.1"
     description = "Sends Reading / Completed to your MyAnimeList list and pulls them back."
     url = "https://myanimelist.net"
     fields = [FieldDef("mal_status", "MyAnimeList")]
     settings_fields = [
-        SettingDef("client_id", "Client ID",
+        SettingDef("client_id", "Client ID", secret=True,
                    help="From myanimelist.net/apiconfig (App type: other)"),
         SettingDef("client_secret", "Client secret", secret=True,
                    help="Only if your MAL app type is 'web'; leave empty for 'other'"),

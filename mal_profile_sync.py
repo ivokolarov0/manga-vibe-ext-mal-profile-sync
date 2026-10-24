@@ -3,12 +3,14 @@
 Drop this file into MangaVibe's plugins folder (docker-data/plugins on the NAS) and press
 Settings -> Reload plugins. Needs MangaVibe with plugin API v2.
 
-What it does (status only, no chapter counts):
+What it does (status only, no chapter counts). With Sync: Automatic (the default):
 - You start reading a series            -> Reading on MyAnimeList
 - You finish the last book you have:
     the series has ended (Finished)      -> Completed on MyAnimeList
     it's still coming out                -> stays Reading
 - You set "Completed" by hand            -> Completed on MyAnimeList
+- You reset it (back to unread)          -> removed from your MyAnimeList list
+With Sync: Manual, nothing is sent by itself; use the dropdown or the sync buttons.
 - "Sync all" (Settings) / "Sync with MyAnimeList" (series page):
     Completed on MyAnimeList             -> Completed in MangaVibe
     Reading on MyAnimeList               -> Reading in MangaVibe (if you hadn't started it)
@@ -44,6 +46,17 @@ STATUS_OPTIONS = [("reading", "Reading"), ("completed", "Completed"), ("on_hold"
 STATUS_LABELS = dict(STATUS_OPTIONS)
 
 
+def _sync_mode_setting():
+    """The Sync dropdown in Settings, or None on MangaVibe before 1.2 (no dropdown settings: Automatic)."""
+    try:
+        return SettingDef("sync_mode", "Sync", options=[("auto", "Automatic"), ("manual", "Manual")],
+                          default="auto",
+                          help="Automatic: starting, finishing or resetting a series here changes it on "
+                               "MyAnimeList. Manual: only the dropdown on the series page and the sync buttons do")
+    except TypeError:
+        return None
+
+
 class NotConnected(Exception):
     pass
 
@@ -62,6 +75,7 @@ class MalProfileSync(Plugin):
                    help="From myanimelist.net/apiconfig (App type: other)"),
         SettingDef("client_secret", "Client secret", secret=True,
                    help="Only if your MAL app type is 'web'; leave empty for 'other'"),
+        *filter(None, [_sync_mode_setting()]),
     ]
     global_actions = [Action("connect", "Connect MyAnimeList"),
                       Action("sync", "Sync all"),
@@ -221,15 +235,32 @@ class MalProfileSync(Plugin):
         return was
 
     # ------------------------------------------------------------------ reading events
+    @staticmethod
+    def _automatic(ctx):
+        return (ctx.settings.get("sync_mode") or "auto") == "auto"
+
     def on_series_status_changed(self, ctx, series, old, new):
-        if not series.mal_id or new not in PUSHED:
+        if not series.mal_id or not self._automatic(ctx) or new not in (*PUSHED, "unread"):
             return
         try:
             mal = self._client(ctx)
         except NotConnected:
             return
+        if new == "unread":  # reset here (marked unread / status cleared): reset there too
+            self._remove(ctx, mal, series)
+            return
         self._flag(ctx, "removed", series, False)  # you changed it here, so MAL may have it again
         self._push(ctx, mal, series, self._wanted(series, new), remote=None)
+
+    def _remove(self, ctx, mal, series):
+        try:
+            mal.delete(f"/manga/{series.mal_id}/my_list_status")
+        except ctx.http.ProviderError as e:
+            if e.status != 404:  # 404: it wasn't on the list anyway
+                raise
+        ctx.set_field(series, "mal_status", "")
+        self._flag(ctx, "pulled_reading", series, False)
+        ctx.log.info("MyAnimeList: %s removed (reset here)", series.folder_name)
 
     def on_book_completed(self, ctx, book, series):
         # A series this plugin set to "Reading" (from MAL) keeps that by hand, so finishing it

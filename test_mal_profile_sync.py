@@ -194,6 +194,37 @@ def test_series_button(client, mal):
     assert "no MyAnimeList id" in r["message"]
 
 
+def test_reset_here_resets_on_mal(client, mal):
+    sid = mal.ids["b"]
+    book = client.get(f"/api/series/{sid}/books").json()[0]
+    client.put(f"/api/books/{book['id']}/progress", json={"page": 1})
+    idle()
+    assert mal.list == {111: "reading"}
+    client.post(f"/api/series/{sid}/mark-unread")  # back to unread
+    idle()
+    assert mal.deletes == [111] and mal.list == {}
+    assert choice(client.get(f"/api/series/{sid}").json())["value"] == ""
+    client.patch(f"/api/series/{mal.ids['h']}", json={"reading_status": "on_hold"})
+    client.patch(f"/api/series/{mal.ids['h']}", json={"clear_reading_status": True})  # never on MAL: 404 is fine
+    idle()
+    assert mal.deletes == [111, 222]
+
+
+def test_manual_sync_sends_nothing_by_itself(client, mal):
+    mode = next(f for f in info(client)["settings"] if f["key"] == "sync_mode")
+    assert mode["value"] == "auto" and mode["options"] == [["auto", "Automatic"], ["manual", "Manual"]]
+    client.put(f"/api/plugins/{PID}/settings", json={"sync_mode": "manual"})
+    sid = mal.ids["b"]
+    read_all(client, sid)
+    client.patch(f"/api/series/{mal.ids['h']}", json={"reading_status": "completed"})
+    client.post(f"/api/series/{sid}/mark-unread")
+    idle()
+    assert mal.patches == [] and mal.deletes == []
+    # the dropdown still changes it
+    assert pick(client, sid, "reading").status_code == 200
+    assert mal.patches == [(111, "reading")]
+
+
 def test_dropdown_sets_mal_and_here(client, mal):
     sid = mal.ids["b"]
     s = client.get(f"/api/series/{sid}").json()

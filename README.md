@@ -106,6 +106,21 @@ a few months.
 URL on MyAnimeList to match. Give the NAS a fixed address in your router (*DHCP reservation*) and
 you won't have to think about it.
 
+## Legal
+
+This plugin is not made by, affiliated with or endorsed by MyAnimeList. It uses MyAnimeList's
+official API with the Client ID you create yourself, so the
+[MyAnimeList API terms](https://myanimelist.net/apiconfig/references/api/v2) apply to it, as they do
+to any app that uses the API.
+
+- **What is sent to MyAnimeList:** only your list entries: which series (by MyAnimeList id) and their
+  status (Reading, Completed, …). No manga files, pages or anything else from your library.
+- **Where your login is kept:** in your own MangaVibe's database, nowhere else. **Disconnect** deletes it.
+
+This project is provided as is, without any warranty.
+
+**Licence:** the code is [MIT](LICENSE): use, change and share it freely.
+
 ## Development
 
 Tests run against a MangaVibe checkout, by default `../../manga-vibe` (set `MANGAVIBE_DIR` otherwise),

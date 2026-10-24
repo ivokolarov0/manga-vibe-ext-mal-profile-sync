@@ -67,10 +67,19 @@ class NotConnected(Exception):
 class MalProfileSync(Plugin):
     id = "mal-profile-sync"
     name = "MyAnimeList sync"
-    version = "1.2.0"
+    version = "1.3.0"
     description = "Sends Reading / Completed / Dropped to your MyAnimeList list and pulls them back."
     url = "https://myanimelist.net"
     repo = "ivokolarov0/manga-vibe-ext-mal-profile-sync"  # MangaVibe 1.2+ updates it from the releases
+    # shown in Settings; MangaVibe asks before an update that adds one (newer MangaVibe only)
+    permissions = [
+        "Connects to myanimelist.net and api.myanimelist.net",
+        "Keeps your MyAnimeList login (saved in MangaVibe's database)",
+        "Changes your MyAnimeList list: adds, removes and sets the status of manga",
+        "Sees what you start and finish reading",
+        "Changes a series' reading status in MangaVibe",
+        "Has its own web page for the MyAnimeList login",
+    ]
     fields = [FieldDef("mal_status", "MyAnimeList")]  # last known status there; the dropdown shows it
     choices = [Choice("mal_status", "MyAnimeList", options=STATUS_OPTIONS)] if Choice else []
     settings_fields = [

@@ -68,6 +68,9 @@ loads and syncs automatically as before, without them.
 version**; nothing is installed until you press Update. Your login and settings are kept. On older
 MangaVibe versions, replace the file and press **Reload plugins**.
 
+The plugin lists what it uses (**Uses:** under it in Settings → Plugins). On MangaVibe versions
+that support this, an update that adds a permission lists it and installs only after you agree.
+
 To remove it, delete the file.
 
 ### Publishing a new version (for the maintainer)

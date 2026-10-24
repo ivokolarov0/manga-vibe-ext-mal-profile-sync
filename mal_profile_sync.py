@@ -54,6 +54,7 @@ class MalProfileSync(Plugin):
     version = "1.1.0"
     description = "Sends Reading / Completed to your MyAnimeList list and pulls them back."
     url = "https://myanimelist.net"
+    repo = "ivokolarov0/manga-vibe-ext-mal-profile-sync"  # MangaVibe 1.2+ updates it from the releases
     fields = [FieldDef("mal_status", "MyAnimeList")]  # last known status there; the dropdown shows it
     choices = [Choice("mal_status", "MyAnimeList", options=STATUS_OPTIONS)] if Choice else []
     settings_fields = [

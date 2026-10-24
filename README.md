@@ -50,7 +50,18 @@ before, without the dropdown.
    `docker-compose.yml`, or `docker/mangavibe/plugins` on a Synology).
 3. In MangaVibe: **Settings → Plugins → Reload plugins**. *MyAnimeList sync* appears in the list.
 
-To update, replace the file and press Reload plugins again. To remove it, delete the file.
+**Updating:** on MangaVibe 1.2.0 or newer, *MyAnimeList sync* has an **Updates** row in
+**Settings → Plugins**. With **Manual** (the default), it shows when a new version is out and you
+press **Update to vX**. With **Automatic**, new versions install by themselves once a day. Your login
+and settings are kept. On older MangaVibe versions, replace the file and press **Reload plugins**.
+
+To remove it, delete the file.
+
+### Publishing a new version (for the maintainer)
+
+1. Raise `version` in `mal_profile_sync.py` and merge it.
+2. Create a GitHub release with the tag `v<version>`, e.g. `v1.1.0`. MangaVibe only offers
+   published releases, not drafts or pre-releases, and downloads `mal_profile_sync.py` at that tag.
 
 ## Connect your MyAnimeList account
 

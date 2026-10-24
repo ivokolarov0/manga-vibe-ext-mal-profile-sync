@@ -362,3 +362,10 @@ def test_expired_token_is_renewed(client, mal):
     idle()
     assert mal.tokens[-1]["grant_type"] == ["refresh_token"]
     assert mal.patches == [(111, "reading")]
+
+
+def test_lists_its_permissions():
+    from mal_profile_sync import MalProfileSync
+    perms = MalProfileSync.permissions
+    assert perms and all(isinstance(x, str) and x.strip() for x in perms)
+    assert any("api.myanimelist.net" in x for x in perms)

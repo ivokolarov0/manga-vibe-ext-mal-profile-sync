@@ -3,12 +3,23 @@
 A [MangaVibe](https://github.com/ivokolarov0/manga-vibe) plugin that keeps your MyAnimeList manga list
 in step with what you read. It only syncs the **status** (Reading / Completed), not chapter counts.
 
+## Automatic or Manual
+
+**Settings → Plugins → MyAnimeList sync → Sync** decides whether MangaVibe changes your MyAnimeList list
+by itself:
+
+**Automatic** (the default):
+
 | You… | MyAnimeList gets |
 |---|---|
 | start reading a series | **Reading** |
 | finish the last book you have, and the series has **ended** | **Completed** |
 | finish the last book you have, and the series is **still coming out** | stays **Reading** |
 | set a series to Completed by hand | **Completed** |
+| reset a series (mark it all unread, or clear its status) | **removed** from your list |
+
+**Manual:** nothing is sent by itself. You change MyAnimeList yourself with the dropdown on the series
+page (below), or with the sync buttons.
 
 **Sync all** (Settings → Plugins) and **Sync with MyAnimeList** (series page, Plugin tools) also go the
 other way:
@@ -17,13 +28,31 @@ other way:
 - Reading on MyAnimeList → **Reading** in MangaVibe, if you hadn't started it there
 - anything you're reading or finished in MangaVibe that MyAnimeList doesn't have yet is sent there
 
-A series that is Completed on MyAnimeList is never set back to Reading. On hold, Dropped and
-Plan to read are never changed.
+The sync never sets a series that's Completed on MyAnimeList back to Reading by itself, and it never
+changes On hold, Dropped or Plan to read.
+
+## Change the status from MangaVibe
+
+The series page has a **MyAnimeList** dropdown under the reading status. It shows the series' status
+on MyAnimeList, and you can change it there instead of on the website:
+
+| You pick… | MyAnimeList | MangaVibe |
+|---|---|---|
+| **Reading**, **Completed**, **On hold**, **Dropped** or **Plan to read** | set to that | set to the same status |
+| **Not on my list** | removed from your list | stays as it is |
+
+A series you removed stays off your list: **Sync all** won't send it back. It goes back on MyAnimeList
+only when you change its status in MangaVibe yourself, or pick a status in the dropdown.
+
+The dropdown shows what the plugin last saw on MyAnimeList. If you changed something on the website,
+press **Sync with MyAnimeList** (Plugin tools) or **Sync all** to update it. *Unknown* means the series
+hasn't been synced yet.
 
 Series need a MyAnimeList id. They get one when they're matched through AniList (most are). Series
-without one are skipped; the last sync result in Settings says how many.
+without one have no dropdown and are skipped by the sync; the last sync result in Settings says how many.
 
-Needs MangaVibe with plugin API v2.
+The dropdown and the Sync setting need **MangaVibe 1.2.0** or newer. On older versions the plugin
+loads and syncs automatically as before, without them.
 
 ## Install
 
@@ -32,7 +61,18 @@ Needs MangaVibe with plugin API v2.
    `docker-compose.yml`, or `docker/mangavibe/plugins` on a Synology).
 3. In MangaVibe: **Settings → Plugins → Reload plugins**. *MyAnimeList sync* appears in the list.
 
-To update, replace the file and press Reload plugins again. To remove it, delete the file.
+**Updating:** on MangaVibe 1.2.0 or newer, *MyAnimeList sync* has an **Updates** row in
+**Settings → Plugins**. When a new version is out, it shows **Update to vX** and **Skip this
+version**; nothing is installed until you press Update. Your login and settings are kept. On older
+MangaVibe versions, replace the file and press **Reload plugins**.
+
+To remove it, delete the file.
+
+### Publishing a new version (for the maintainer)
+
+1. Raise `version` in `mal_profile_sync.py` and merge it.
+2. Create a GitHub release with the tag `v<version>`, e.g. `v1.1.0`. MangaVibe only offers
+   published releases, not drafts or pre-releases, and downloads `mal_profile_sync.py` at that tag.
 
 ## Connect your MyAnimeList account
 

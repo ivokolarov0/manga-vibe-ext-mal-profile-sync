@@ -63,8 +63,8 @@ loads and syncs automatically as before, without them.
    `docker-compose.yml`, or `docker/mangavibe/plugins` on a Synology).
 3. In MangaVibe: **Settings → Plugins → Reload plugins**. *MyAnimeList sync* appears in the list.
 
-**Updating:** on MangaVibe 1.2.0 or newer, *MyAnimeList sync* has an **Updates** row in
-**Settings → Plugins**. When a new version is out, it shows **Update to vX** and **Skip this
+**Updating:** on MangaVibe 1.2.0 or newer, *MyAnimeList sync* has an **Updates** part in
+**Settings → Plugins** (on its own page on newer MangaVibe: press **Settings** next to it). When a new version is out, it shows **Update to vX** and **Skip this
 version**; nothing is installed until you press Update. Your login and settings are kept. On older
 MangaVibe versions, replace the file and press **Reload plugins**.
 
